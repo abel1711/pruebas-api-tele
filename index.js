@@ -1,6 +1,6 @@
 const input = require('input');
 const api = require("./api");
-
+require('dotenv').config()
 
 const customInput = async ( message )=>{
     return await  input.text(message);

@@ -2,7 +2,7 @@ const path = require('path');
 const MTProto = require('@mtproto/core');
 const { sleep } = require('@mtproto/core/src/utils/common');
 const fs = require('fs');
-
+require('dotenv').config()
 class API {
     constructor() {
         this.mtproto = new MTProto({
