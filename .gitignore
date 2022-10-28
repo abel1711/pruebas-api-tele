@@ -1,0 +1,8 @@
+/node_modules
+info/**
+ids/**
+ids-test/**
+data-abel/**
+data/**
+dist/**
+.env
