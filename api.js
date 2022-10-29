@@ -140,18 +140,17 @@ class API {
         this.mtproto.updates.on('updates', (updateInfo) => {
 
             console.log('Updated..')
-
             if ((updateInfo.updates[0]._ == 'updateNewChannelMessage')) {
 
-                const data = `Canal: ${updateInfo.chats[0].title}\nEl id del canal es :${updateInfo.chats[0].id}\nEl hash del canal es: ${updateInfo.chats[0].access_hash}\nEL id del usuario que escribio es: ${updateInfo.updates[0].message.from_id.user_id}`;
+                const data = `Canal: ${updateInfo.chats[0].title}\nEl id del canal es :${updateInfo.chats[0].id}\nEl hash del canal es: ${updateInfo.chats[0].access_hash}`;
 
                 fs.writeFileSync(`info/${updateInfo.chats[0].title}.txt`, data);
 
             }
 
             updateInfo.updates.forEach(update => {
-                // this.messages.push(update.message)
-                if ((update._ == 'updateNewChannelMessage') && (update.message.from_id.user_id == process.env.C_USER_ID) && (update.message.peer_id.channel_id == process.env.C_CHANNEL_ID)) {
+                this.messages.push(update.message)
+                if ((update._ == 'updateNewChannelMessage') && (update.message.peer_id.channel_id == process.env.C_CHANNEL_ID)) {
                     this.messagesToReply.push(update.message.message)
                     this.sendMessageToChannel();
                 };
