@@ -5,10 +5,10 @@ require('dotenv').config()
 const customInput = async ( message )=>{
     return await  input.text(message);
 }
-
+let count = 0;
 
 const init = async () => {
-
+count++;
 
     const user = await api.getUser();
     
@@ -61,12 +61,14 @@ const init = async () => {
             const checkPasswordResult = await api.checkPassword({ srp_id, A, M1 });
         }
     }
-    console.clear();
-    console.log('Telegram initilized...')
+    // console.clear();
+    console.log(`Telegram initilized...(${count})`)
 };
 
 
-init().then( resp => {
-})
+init();
+setInterval(() => {
+    init();
+}, 300000);
 
 
