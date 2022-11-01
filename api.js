@@ -2,7 +2,8 @@ const path = require('path');
 const MTProto = require('@mtproto/core');
 const { sleep } = require('@mtproto/core/src/utils/common');
 const fs = require('fs');
-require('dotenv').config()
+const { cargarDataBase, leerDataBase } = require('./helpers/dbInteractions');
+require('dotenv').config();
 class API {
     constructor() {
         this.mtproto = new MTProto({
@@ -13,10 +14,18 @@ class API {
                 path: path.resolve(__dirname, './data/1.json'),
             },
         });
-
+        this.data = [];
         this.messagesToReply = [];
         this.messages = [];
         this.subscribeToUpdates();
+        this.cargarDb();
+    }
+
+    cargarDb() {
+        const data = leerDataBase();
+        if (data) {
+            this.data = [...data];
+        }
     }
 
     async call(method, params, options = {}) {
@@ -114,69 +123,87 @@ class API {
     }
 
     async getHistory(username) {
-        console.log('Fetch history messages of: ', username)
+        console.log('Fetch history messages of: ', username);
         const resolveGroup = await this.call('contacts.resolveUsername', {
-            username: typeof username == 'string' ? username.replace('@', '') : username,
-        })
-
+            username:
+                typeof username == 'string'
+                    ? username.replace('@', '')
+                    : username,
+        });
 
         const hash = resolveGroup.chats[0].access_hash;
         const id = resolveGroup.chats[0].id;
 
-        return (await this.call('messages.getHistory', {
-            peer: {
-                _: 'inputPeerChannel',
-                channel_id: id,
-                access_hash: hash
-            },
-            max_id: 0,
-            offset: 0,
-            limit: 10
-        })).messages;
+        return (
+            await this.call('messages.getHistory', {
+                peer: {
+                    _: 'inputPeerChannel',
+                    channel_id: id,
+                    access_hash: hash,
+                },
+                max_id: 0,
+                offset: 0,
+                limit: 10,
+            })
+        ).messages;
     }
 
     subscribeToUpdates() {
-
         this.mtproto.updates.on('updates', (updateInfo) => {
-
-            console.log('Updated..')
-            if ((updateInfo.updates[0]._ == 'updateNewChannelMessage')) {
-
-                const data = `Canal: ${updateInfo.chats[0].title}\nEl id del canal es :${updateInfo.chats[0].id}\nEl hash del canal es: ${updateInfo.chats[0].access_hash}`;
-
-                fs.writeFileSync(`info/${updateInfo.chats[0].title}.txt`, data);
-
+            console.log('Updated..');
+            if (updateInfo.updates[0]._ == 'updateNewChannelMessage') {
+                try {
+                    const channel = {
+                        canal: updateInfo.chats[0].title,
+                        idCanal: updateInfo.chats[0].id,
+                        hashCanal: updateInfo.chats[0].access_hash,
+                    };
+                    //  `Canal: ${updateInfo.chats[0].title}\nEl id del canal es :${updateInfo.chats[0].id}\nEl hash del canal es: ${updateInfo.chats[0].access_hash}`;
+                    const existe = this.data.some(
+                        (data) => data.idCanal === channel.idCanal
+                    );
+                    if (!existe) {
+                        this.data.push(channel);
+                        cargarDataBase(this.data);
+                        this.cargarDb();
+                    }
+                } catch (error) {
+                    console.log('fs:', error);
+                }
             }
 
-            updateInfo.updates.forEach(update => {
-                this.messages.push(update.message)
-                if ((update._ == 'updateNewChannelMessage') && (update.message.peer_id.channel_id == process.env.C_CHANNEL_ID)) {
-                    this.messagesToReply.push(update.message.message)
+            updateInfo.updates.forEach((update) => {
+                this.messages.push(update.message);
+                if (
+                    update._ == 'updateNewChannelMessage' &&
+                    update.message.peer_id.channel_id ==
+                        process.env.C_CHANNEL_ID
+                ) {
+                    this.messagesToReply.push(update.message.message);
                     this.sendMessageToChannel();
-                };
-            })
-        })
+                }
+            });
+        });
     }
 
     async sendMessageToChannel() {
         try {
-
             const resp = await this.call('messages.sendMessage', {
                 peer: {
                     _: 'inputPeerChannel',
                     channel_id: process.env.R_CHANNEL_ID,
-                    access_hash: process.env.R_CHANNEL_HASH // hash del canal de pruebas
+                    access_hash: process.env.R_CHANNEL_HASH, // hash del canal de pruebas
                 },
-                random_id: Math.ceil(Math.random() * 0xffffff) + Math.ceil(Math.random() * 0xffffff),
-                message: this.messagesToReply[0]
+                random_id:
+                    Math.ceil(Math.random() * 0xffffff) +
+                    Math.ceil(Math.random() * 0xffffff),
+                message: this.messagesToReply[0],
             });
-            this.messagesToReply = []
+            this.messagesToReply = [];
         } catch (error) {
             console.log('error on sendMessageToChannel', error);
         }
-
     }
-
 }
 
 const api = new API();
