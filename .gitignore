@@ -6,3 +6,4 @@ data-abel/**
 data/**
 dist/**
 .env
+db/**
