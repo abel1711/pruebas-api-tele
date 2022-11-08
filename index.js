@@ -1,28 +1,19 @@
 const input = require('input');
-const cliProgress = require('cli-progress');
 require('dotenv').config();
 const api = require('./api');
 
 const TIME_TO_REFRESH = 600000;
 
-// create a new progress bar instance and use shades_classic theme
-// const bar1 = new cliProgress.SingleBar(
-//     { clearOnComplete: true,
-//         stopOnComplete: true,
-//         format: 'progress [{bar}] {percentage}%'
-//     },
-//     cliProgress.Presets.shades_classic
-// );
-
-// let miliseconds = 0;
 console.clear();
+
 const customInput = async (message) => {
     return await input.text(message);
 };
 
 const init = async () => {
+
     const user = await api.getUser();
-    // miliseconds = 0;
+
     if (!user) {
         const phone = await customInput('Please, what is your phone number?');
 
@@ -75,20 +66,11 @@ const init = async () => {
             });
         }
     }
-    // console.clear();
     console.log(`Telegram initilized...(${new Date().toLocaleString()})`);
-    // start the progress bar with a total value of 200 and start value of 0
-    // bar1.start(TIME_TO_REFRESH, 0, {});
 
-    // // update the current value in your application..
-    // setInterval(() => {
-    //     miliseconds += 100;
-    //     bar1.increment();
-    //     bar1.update(miliseconds);
-    // }, 100);
 };
 
-init().then(()=>{
+init().then(async() => {
     
 });
 setInterval(() => {

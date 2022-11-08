@@ -15,7 +15,7 @@ class API {
             },
         });
         this.data = [];
-        this.messagesToReply = [];
+        this.messageToReply = '';
         this.messages = [];
         this.subscribeToUpdates();
         this.cargarDb();
@@ -123,63 +123,92 @@ class API {
     }
 
     async getHistory(username) {
-        console.log('Fetch history messages of: ', username);
-        const resolveGroup = await this.call('contacts.resolveUsername', {
-            username:
-                typeof username == 'string'
-                    ? username.replace('@', '')
-                    : username,
-        });
 
-        const hash = resolveGroup.chats[0].access_hash;
-        const id = resolveGroup.chats[0].id;
+        // console.log('Fetch history messages of: ', username);
 
-        return (
-            await this.call('messages.getHistory', {
-                peer: {
-                    _: 'inputPeerChannel',
-                    channel_id: id,
-                    access_hash: hash,
-                },
-                max_id: 0,
-                offset: 0,
-                limit: 10,
-            })
-        ).messages;
+        // const resolveGroup = await this.call('contacts.resolveUsername', {
+        //     username: ''
+        // });
+        // // username: username.replace('@', ''),
+
+        // const hash = resolveGroup.chats[0].access_hash;
+        // const id = resolveGroup.chats[0].id;
+
+        const { messages } = await this.call('messages.getHistory', {
+            peer: {
+                _: 'inputPeerChannel',
+                channel_id: process.env.R_CHANNEL_ID,
+                access_hash: process.env.R_CHANNEL_HASH,
+            },
+            max_id: 0,
+            offset: 0,
+            limit: 20,
+        })
+
+        this.messages = messages
+
+
     }
 
-    subscribeToUpdates() {
+    async createMensaje(idMsj) {
+        const { messages } = await this.call('messages.getHistory', {
+            peer: {
+                _: 'inputPeerChannel',
+                channel_id: process.env.R_CHANNEL_ID,
+                access_hash: process.env.R_CHANNEL_HASH,
+            },
+            max_id: 0,
+            offset: 0,
+            limit: 20,
+        })
+
+        const msj = messages.filter(msj => msj.id == idMsj);
+
+        msj[0].message;
+
+        return `Actualizacion estado de Orden:\n${msj[0].message}\n`
+    }
+
+    async subscribeToUpdates() {
         this.mtproto.updates.on('updates', (updateInfo) => {
-            console.log('Updated..');
+
             if (updateInfo.updates[0]._ == 'updateNewChannelMessage') {
                 try {
+
                     const channel = {
                         canal: updateInfo.chats[0].title,
                         idCanal: updateInfo.chats[0].id,
                         hashCanal: updateInfo.chats[0].access_hash,
                     };
-                    //  `Canal: ${updateInfo.chats[0].title}\nEl id del canal es :${updateInfo.chats[0].id}\nEl hash del canal es: ${updateInfo.chats[0].access_hash}`;
+
                     const existe = this.data.some(
                         (data) => data.idCanal === channel.idCanal
                     );
                     if (!existe) {
+
                         this.data.push(channel);
                         cargarDataBase(this.data);
                         this.cargarDb();
                     }
+
                 } catch (error) {
                     console.log('fs:', error);
                 }
             }
 
-            updateInfo.updates.forEach((update) => {
-                this.messages.push(update.message);
+            updateInfo.updates.forEach(async (update) => {
+
                 if (
                     update._ == 'updateNewChannelMessage' &&
                     update.message.peer_id.channel_id ==
-                        process.env.C_CHANNEL_ID
+                    process.env.C_CHANNEL_ID
                 ) {
-                    this.messagesToReply.push(update.message.message);
+                    if (!update.message.reply_to) {
+                        this.messageToReply = update.message.message;
+                    } else {
+                        const mensaje = await this.createMensaje(update.message.reply_to.reply_to_msg_id);
+                        this.messageToReply = `${mensaje}${update.message.message}`;
+                    }
                     this.sendMessageToChannel();
                 }
             });
@@ -197,9 +226,10 @@ class API {
                 random_id:
                     Math.ceil(Math.random() * 0xffffff) +
                     Math.ceil(Math.random() * 0xffffff),
-                message: this.messagesToReply[0],
+                message: this.messageToReply,
             });
-            this.messagesToReply = [];
+
+            this.messagesToReply = '';
         } catch (error) {
             console.log('error on sendMessageToChannel', error);
         }
