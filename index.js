@@ -1,26 +1,34 @@
 const input = require('input');
-const api = require("./api");
-require('dotenv').config()
+const cliProgress = require('cli-progress');
+require('dotenv').config();
+const api = require('./api');
 
-const customInput = async ( message )=>{
-    return await  input.text(message);
-}
-let count = 0;
+const TIME_TO_REFRESH = 600000;
+
+// create a new progress bar instance and use shades_classic theme
+// const bar1 = new cliProgress.SingleBar(
+//     { clearOnComplete: true,
+//         stopOnComplete: true,
+//         format: 'progress [{bar}] {percentage}%'
+//     },
+//     cliProgress.Presets.shades_classic
+// );
+
+// let miliseconds = 0;
+console.clear();
+const customInput = async (message) => {
+    return await input.text(message);
+};
 
 const init = async () => {
-count++;
-
     const user = await api.getUser();
-    
-    
+    // miliseconds = 0;
     if (!user) {
-        
-        const phone = await customInput('Please, what is your phone number?' );
-        
+        const phone = await customInput('Please, what is your phone number?');
+
         const { phone_code_hash } = await api.sendCode(phone); // esta funcion dispara el envio del codigo
 
         const code = await customInput('Whats is de phone code?'); // hay que ver si funciona
-
 
         try {
             const signInResult = await api.signIn({
@@ -44,7 +52,9 @@ count++;
 
             // 2FA
 
-            const password = await customInput('Please, what is your password?' );
+            const password = await customInput(
+                'Please, what is your password?'
+            );
 
             const { srp_id, current_algo, srp_B } = await api.getPassword();
             const { g, p, salt1, salt2 } = current_algo;
@@ -58,17 +68,29 @@ count++;
                 password,
             });
 
-            const checkPasswordResult = await api.checkPassword({ srp_id, A, M1 });
+            const checkPasswordResult = await api.checkPassword({
+                srp_id,
+                A,
+                M1,
+            });
         }
     }
     // console.clear();
-    console.log(`Telegram initilized...(${count})`)
+    console.log(`Telegram initilized...(${new Date().toLocaleString()})`);
+    // start the progress bar with a total value of 200 and start value of 0
+    // bar1.start(TIME_TO_REFRESH, 0, {});
+
+    // // update the current value in your application..
+    // setInterval(() => {
+    //     miliseconds += 100;
+    //     bar1.increment();
+    //     bar1.update(miliseconds);
+    // }, 100);
 };
 
-
-init();
+init().then(()=>{
+    
+});
 setInterval(() => {
     init();
-}, 300000);
-
-
+}, TIME_TO_REFRESH);

@@ -1,7 +1,8 @@
 {
-  "name": "bot-telegram-copiar-pegar-grupo",
+  "name": "cyp-teleg",
   "version": "1.0.0",
   "description": "",
+  "bin": "index.js",
   "main": "dist/index.js",
   "scripts": {
     "start": "tsc && node dist/index.js",
@@ -21,6 +22,7 @@
   },
   "dependencies": {
     "@mtproto/core": "6.2.0",
+    "cli-progress": "^3.11.2",
     "csv": "^6.2.1",
     "dotenv": "^16.0.3"
   }
