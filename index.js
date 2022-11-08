@@ -1,5 +1,7 @@
 const input = require('input');
 require('dotenv').config();
+require('colors');
+
 const api = require('./api');
 
 const TIME_TO_REFRESH = 600000;
@@ -66,7 +68,7 @@ const init = async () => {
             });
         }
     }
-    console.log(`Telegram initilized...(${new Date().toLocaleString()})`);
+    console.log(`Telegram initilized...(${new Date().toLocaleString()})`.bgBlack.brightGreen);
 
 };
 

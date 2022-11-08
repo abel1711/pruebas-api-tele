@@ -1,9 +1,11 @@
 const path = require('path');
 const MTProto = require('@mtproto/core');
 const { sleep } = require('@mtproto/core/src/utils/common');
-const fs = require('fs');
 const { cargarDataBase, leerDataBase } = require('./helpers/dbInteractions');
 require('dotenv').config();
+require('colors');
+
+
 class API {
     constructor() {
         this.mtproto = new MTProto({
@@ -17,6 +19,7 @@ class API {
         this.data = [];
         this.messageToReply = '';
         this.messages = [];
+        this.idMsjToReply = 0;
         this.subscribeToUpdates();
         this.cargarDb();
     }
@@ -34,7 +37,7 @@ class API {
 
             return result;
         } catch (error) {
-            console.log(`${method} error:`, error);
+            console.log(`${method} error:`.red, error);
 
             const { error_code, error_message } = error;
 
@@ -124,15 +127,14 @@ class API {
 
     async getHistory(username) {
 
-        // console.log('Fetch history messages of: ', username);
+        console.log('Fetch history messages of: ', username);
 
-        // const resolveGroup = await this.call('contacts.resolveUsername', {
-        //     username: ''
-        // });
-        // // username: username.replace('@', ''),
+        const resolveGroup = await this.call('contacts.resolveUsername', {
+            username: username.replace('@', ''),
+        });
 
-        // const hash = resolveGroup.chats[0].access_hash;
-        // const id = resolveGroup.chats[0].id;
+        const hash = resolveGroup.chats[0].access_hash;
+        const id = resolveGroup.chats[0].id;
 
         const { messages } = await this.call('messages.getHistory', {
             peer: {
@@ -150,8 +152,23 @@ class API {
 
     }
 
-    async createMensaje(idMsj) {
-        const { messages } = await this.call('messages.getHistory', {
+    async ObternerIdMsjToReply(idMsjCopiado) {
+
+        const MsjInCopyChannel = await this.call('messages.getHistory', {
+
+            peer: {
+                _: 'inputPeerChannel',
+                channel_id: process.env.C_CHANNEL_ID,
+                access_hash: process.env.C_CHANNEL_HASH,
+            },
+            max_id: 0,
+            offset: 0,
+            limit: 20,
+        })
+
+        const msj = MsjInCopyChannel.messages.filter(msj => msj.id == idMsjCopiado);
+
+        const MsjInMyChannel = await this.call('messages.getHistory', {
             peer: {
                 _: 'inputPeerChannel',
                 channel_id: process.env.R_CHANNEL_ID,
@@ -162,11 +179,10 @@ class API {
             limit: 20,
         })
 
-        const msj = messages.filter(msj => msj.id == idMsj);
-
-        msj[0].message;
-
-        return `Actualizacion estado de Orden:\n${msj[0].message}\n`
+        const msj2 = MsjInMyChannel.messages.find(mensaje => mensaje.message == msj[0].message);
+        if (msj2) {
+            this.idMsjToReply = msj2.id;
+        }
     }
 
     async subscribeToUpdates() {
@@ -203,12 +219,14 @@ class API {
                     update.message.peer_id.channel_id ==
                     process.env.C_CHANNEL_ID
                 ) {
-                    if (!update.message.reply_to) {
-                        this.messageToReply = update.message.message;
-                    } else {
-                        const mensaje = await this.createMensaje(update.message.reply_to.reply_to_msg_id);
-                        this.messageToReply = `${mensaje}${update.message.message}`;
+
+                    console.log(`Nuevo mensaje:`.red.bgBlack);
+                    console.log(`${update.message.message}`.bgBlack.brightGreen)
+
+                    if (update.message.reply_to) {
+                        await this.ObternerIdMsjToReply(update.message.reply_to.reply_to_msg_id);
                     }
+                    this.messageToReply = update.message.message;
                     this.sendMessageToChannel();
                 }
             });
@@ -217,7 +235,7 @@ class API {
 
     async sendMessageToChannel() {
         try {
-            const resp = await this.call('messages.sendMessage', {
+            await this.call('messages.sendMessage', {
                 peer: {
                     _: 'inputPeerChannel',
                     channel_id: process.env.R_CHANNEL_ID,
@@ -227,11 +245,13 @@ class API {
                     Math.ceil(Math.random() * 0xffffff) +
                     Math.ceil(Math.random() * 0xffffff),
                 message: this.messageToReply,
+                reply_to_msg_id: this.idMsjToReply
             });
 
             this.messagesToReply = '';
+            this.idMsjToReply = 0;
         } catch (error) {
-            console.log('error on sendMessageToChannel', error);
+            console.log('error on sendMessageToChannel'.red, error);
         }
     }
 }
