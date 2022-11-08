@@ -139,8 +139,8 @@ class API {
         const { messages } = await this.call('messages.getHistory', {
             peer: {
                 _: 'inputPeerChannel',
-                channel_id: process.env.R_CHANNEL_ID,
-                access_hash: process.env.R_CHANNEL_HASH,
+                channel_id: id,
+                access_hash: hash,
             },
             max_id: 0,
             offset: 0,
@@ -163,7 +163,7 @@ class API {
             },
             max_id: 0,
             offset: 0,
-            limit: 20,
+            limit: 50,
         })
 
         const msj = MsjInCopyChannel.messages.filter(msj => msj.id == idMsjCopiado);
@@ -176,7 +176,7 @@ class API {
             },
             max_id: 0,
             offset: 0,
-            limit: 20,
+            limit: 50,
         })
 
         const msj2 = MsjInMyChannel.messages.find(mensaje => mensaje.message == msj[0].message);
