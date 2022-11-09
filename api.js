@@ -5,7 +5,6 @@ const { cargarDataBase, leerDataBase } = require('./helpers/dbInteractions');
 require('dotenv').config();
 require('colors');
 
-
 class API {
     constructor() {
         this.mtproto = new MTProto({
@@ -126,7 +125,6 @@ class API {
     }
 
     async getHistory(username) {
-
         console.log('Fetch history messages of: ', username);
 
         const resolveGroup = await this.call('contacts.resolveUsername', {
@@ -145,52 +143,60 @@ class API {
             max_id: 0,
             offset: 0,
             limit: 20,
-        })
+        });
 
-        this.messages = messages
-
-
+        this.messages = messages;
     }
 
     async ObternerIdMsjToReply(idMsjCopiado) {
+        let msj;
+        try {
+            const MsjInCopyChannel = await this.call('messages.getHistory', {
+                peer: {
+                    _: 'inputPeerChannel',
+                    channel_id: process.env.C_CHANNEL_ID,
+                    access_hash: process.env.C_CHANNEL_HASH,
+                },
+                max_id: 0,
+                offset: 0,
+                limit: 50,
+            });
 
-        const MsjInCopyChannel = await this.call('messages.getHistory', {
+            msj = MsjInCopyChannel.messages.filter(
+                (msj) => msj.id == idMsjCopiado
+            );
+        } catch (error) {
+            console.log('error 1:'.red, error)
+        }
 
-            peer: {
-                _: 'inputPeerChannel',
-                channel_id: process.env.C_CHANNEL_ID,
-                access_hash: process.env.C_CHANNEL_HASH,
-            },
-            max_id: 0,
-            offset: 0,
-            limit: 50,
-        })
-
-        const msj = MsjInCopyChannel.messages.filter(msj => msj.id == idMsjCopiado);
-
-        const MsjInMyChannel = await this.call('messages.getHistory', {
-            peer: {
-                _: 'inputPeerChannel',
-                channel_id: process.env.R_CHANNEL_ID,
-                access_hash: process.env.R_CHANNEL_HASH,
-            },
-            max_id: 0,
-            offset: 0,
-            limit: 50,
-        })
-
-        const msj2 = MsjInMyChannel.messages.find(mensaje => mensaje.message == msj[0].message);
-        if (msj2) {
-            this.idMsjToReply = msj2.id;
+        try {
+            
+            const MsjInMyChannel = await this.call('messages.getHistory', {
+                peer: {
+                    _: 'inputPeerChannel',
+                    channel_id: process.env.R_CHANNEL_ID,
+                    access_hash: process.env.R_CHANNEL_HASH,
+                },
+                max_id: 0,
+                offset: 0,
+                limit: 50,
+            });
+    
+            const msj2 = MsjInMyChannel.messages.find(
+                (mensaje) => mensaje.message == msj[0].message
+            );
+            if (msj2) {
+                this.idMsjToReply = msj2.id;
+            }
+        } catch (error) {
+            console.log('error2: '.red, error)
         }
     }
 
     async subscribeToUpdates() {
         this.mtproto.updates.on('updates', (updateInfo) => {
-
             if (updateInfo.updates[0]._ == 'updateNewChannelMessage') {
                 try {
-
                     const channel = {
                         canal: updateInfo.chats[0].title,
                         idCanal: updateInfo.chats[0].id,
@@ -201,30 +207,30 @@ class API {
                         (data) => data.idCanal === channel.idCanal
                     );
                     if (!existe) {
-
                         this.data.push(channel);
                         cargarDataBase(this.data);
                         this.cargarDb();
                     }
-
                 } catch (error) {
                     console.log('fs:', error);
                 }
             }
 
             updateInfo.updates.forEach(async (update) => {
-
                 if (
                     update._ == 'updateNewChannelMessage' &&
                     update.message.peer_id.channel_id ==
-                    process.env.C_CHANNEL_ID
+                        process.env.C_CHANNEL_ID
                 ) {
-
                     console.log(`Nuevo mensaje:`.red.bgBlack);
-                    console.log(`${update.message.message}`.bgBlack.brightGreen)
+                    console.log(
+                        `${update.message.message}`.bgBlack.brightGreen
+                    );
 
                     if (update.message.reply_to) {
-                        await this.ObternerIdMsjToReply(update.message.reply_to.reply_to_msg_id);
+                        await this.ObternerIdMsjToReply(
+                            update.message.reply_to.reply_to_msg_id
+                        );
                     }
                     this.messageToReply = update.message.message;
                     this.sendMessageToChannel();
@@ -245,7 +251,7 @@ class API {
                     Math.ceil(Math.random() * 0xffffff) +
                     Math.ceil(Math.random() * 0xffffff),
                 message: this.messageToReply,
-                reply_to_msg_id: this.idMsjToReply
+                reply_to_msg_id: this.idMsjToReply,
             });
 
             this.messagesToReply = '';
