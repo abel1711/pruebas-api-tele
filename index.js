@@ -73,7 +73,6 @@ const init = async () => {
 };
 
 init().then(async() => {
-    
 });
 setInterval(() => {
     init();
