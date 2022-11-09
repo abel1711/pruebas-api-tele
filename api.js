@@ -242,9 +242,9 @@ class API {
 
                     this.cargarDb();
 
-                    console.log(`Nuevo mensaje:`.red.bgBlack);
+                    console.log(`\bNuevo mensaje:`.red.bgBlack);
                     console.log(
-                        `${update.message.message}`.bgBlack.brightGreen
+                        `\b${update.message.message}`.bgBlack.brightGreen
                     );
 
                     if (update.message.reply_to) {
@@ -261,7 +261,7 @@ class API {
 
     async sendMessageToChannel() {
         try {
-            await this.call('messages.sendMessage', {
+            const resp = await this.call('messages.sendMessage', {
                 peer: {
                     _: 'inputPeerChannel',
                     channel_id: process.env.R_CHANNEL_ID,
@@ -273,7 +273,9 @@ class API {
                 message: this.messageToReply,
                 reply_to_msg_id: this.idMsjToReply,
             });
-
+            if(resp.updates){
+                console.log('\bEl mensaje fue re-enviado...\n'.yellow.bgBlack)
+            }
             this.messagesToReply = '';
             this.idMsjToReply = 0;
         } catch (error) {

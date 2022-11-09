@@ -1,4 +1,6 @@
 const input = require('input');
+const loadingSpinner = require('loading-spinner');
+
 require('dotenv').config();
 require('colors');
 
@@ -68,12 +70,11 @@ const init = async () => {
             });
         }
     }
-    console.log(`Telegram initilized...(${new Date().toLocaleString()})`.bgBlack.brightGreen);
-
+    console.log('\t╔════════════════════════════════════════════════════════════╗'.brightGreen.bgBlack)
+    console.log(`\t║  Copiador de mensajes inicializado...${new Date().toLocaleString()}   ║`.bgBlack.brightGreen);
+    console.log('\t╚════════════════════════════════════════════════════════════╝'.brightGreen.bgBlack)
+    loadingSpinner.start(200);
 };
 
 init().then(async() => {
 });
-setInterval(() => {
-    init();
-}, TIME_TO_REFRESH);

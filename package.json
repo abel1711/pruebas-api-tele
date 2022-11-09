@@ -25,6 +25,7 @@
     "cli-progress": "^3.11.2",
     "colors": "^1.4.0",
     "csv": "^6.2.1",
-    "dotenv": "^16.0.3"
+    "dotenv": "^16.0.3",
+    "loading-spinner": "^1.2.1"
   }
 }
