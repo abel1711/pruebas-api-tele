@@ -6,8 +6,6 @@ require('colors');
 
 const api = require('./api');
 
-const TIME_TO_REFRESH = 600000;
-
 console.clear();
 
 const customInput = async (message) => {
