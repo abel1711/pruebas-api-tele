@@ -70,10 +70,13 @@ const init = async () => {
             });
         }
     }
-    console.log('\t╔════════════════════════════════════════════════════════════╗'.brightGreen.bgBlack)
-    console.log(`\t║  Copiador de mensajes inicializado...${new Date().toLocaleString()}   ║`.bgBlack.brightGreen);
-    console.log('\t╚════════════════════════════════════════════════════════════╝'.brightGreen.bgBlack)
-    loadingSpinner.start(200);
+    console.log('\t╔══════════════════════════════════════════════════════════╗'.brightGreen.bgBlack)
+    console.log(`\t║  Copiador de mensajes inicializado...${new Date().toLocaleString()}  ║`.bgBlack.brightGreen);
+    console.log('\t╚══════════════════════════════════════════════════════════╝'.brightGreen.bgBlack)
+
+    loadingSpinner.start(200,{
+        hideCursor: true
+    });
 };
 
 init().then(async() => {
