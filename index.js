@@ -1,8 +1,9 @@
 const input = require('input');
-const loadingSpinner = require('loading-spinner');
+// const loadingSpinner = require('loading-spinner');
 
 require('dotenv').config();
 require('colors');
+let firstInit = true;
 
 const api = require('./api');
 
@@ -68,14 +69,16 @@ const init = async () => {
             });
         }
     }
-    console.log('\t╔══════════════════════════════════════════════════════════╗'.brightGreen.bgBlack)
-    console.log(`\t║  Copiador de mensajes inicializado...${new Date().toLocaleString()}  ║`.bgBlack.brightGreen);
-    console.log('\t╚══════════════════════════════════════════════════════════╝'.brightGreen.bgBlack)
-
-    loadingSpinner.start(200,{
-        hideCursor: true
-    });
+    if(firstInit){
+        console.log('\t╔════════════════════════════════════════╗'.brightGreen.bgBlack)
+        console.log(`\t║  Copiador de mensajes inicializado...  ║`.bgBlack.brightGreen);
+        console.log('\t╚════════════════════════════════════════╝'.brightGreen.bgBlack)
+    }
+    console.log(`${new Date().toLocaleTimeString()}`)
+    firstInit=false;
 };
 
-init().then(async() => {
-});
+init();
+setInterval(() => {
+    init();
+}, 300000);

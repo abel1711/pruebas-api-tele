@@ -195,7 +195,6 @@ class API {
 
 
             updateInfo.updates.forEach(async (update) => {
-
                 if (update._ == 'updateNewChannelMessage') {
 
                     try {
@@ -222,8 +221,8 @@ class API {
 
                 if (
                     update._ == 'updateNewChannelMessage' &&
-                    update.message.peer_id.channel_id ==
-                    process.env.C_CHANNEL_ID
+                    (update.message.peer_id.channel_id ==
+                    process.env.C_CHANNEL_ID ||update.message.peer_id.channel_id == '1660911600')
                 ) {
 
                     const newMsj = {
