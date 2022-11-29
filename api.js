@@ -15,7 +15,7 @@ class API {
                 path: path.resolve(__dirname, './data/2.json'),
             },
         });
-        this.data = [];
+        // this.data = [];
         this.messageToReply = '';
         this.messages = [];
         this.idMsjToReply = 0;
@@ -24,10 +24,7 @@ class API {
     }
 
     cargarDb() {
-        const data = leerDataBase();
-        if (data) {
-            this.data = [...data];
-        }
+
         const msjs = leerDataBaseMensajes();
         if (msjs) {
             this.messages = [...msjs]
@@ -195,29 +192,6 @@ class API {
 
 
             updateInfo.updates.forEach(async (update) => {
-                if (update._ == 'updateNewChannelMessage') {
-
-                    try {
-                        const channel = {
-                            canal: updateInfo.chats[0].title,
-                            idCanal: updateInfo.chats[0].id,
-                            hashCanal: updateInfo.chats[0].access_hash,
-                        };
-
-                        const existe = this.data.some(
-                            (data) => data.idCanal === channel.idCanal
-                        );
-
-                        if (!existe) {
-                            this.data.push(channel);
-                            cargarDataBase(this.data);
-                            this.cargarDb();
-                        }
-
-                    } catch (error) {
-                        console.log('fs:', error);
-                    }
-                }
 
                 if (
                     update._ == 'updateNewChannelMessage' &&
@@ -264,7 +238,7 @@ class API {
                 peer: {
                     _: 'inputPeerChannel',
                     channel_id: process.env.R_CHANNEL_ID,
-                    access_hash: process.env.R_CHANNEL_HASH, // hash del canal de pruebas
+                    access_hash: process.env.R_CHANNEL_HASH, 
                 },
                 random_id:
                     Math.ceil(Math.random() * 0xffffff) +
