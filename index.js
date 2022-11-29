@@ -3,7 +3,6 @@ const input = require('input');
 
 require('dotenv').config();
 require('colors');
-let firstInit = true;
 
 const api = require('./api');
 
@@ -18,7 +17,7 @@ const init = async () => {
     const user = await api.getUser();
 
     if (!user) {
-        const phone = await customInput('Please, what is your phone number?');
+        const phone = process.env.PHONE;
 
         const { phone_code_hash } = await api.sendCode(phone); // esta funcion dispara el envio del codigo
 
@@ -69,16 +68,10 @@ const init = async () => {
             });
         }
     }
-    if(firstInit){
         console.log('\t╔════════════════════════════════════════╗'.brightGreen.bgBlack)
         console.log(`\t║  Copiador de mensajes inicializado...  ║`.bgBlack.brightGreen);
         console.log('\t╚════════════════════════════════════════╝'.brightGreen.bgBlack)
-    }
     console.log(`${new Date().toLocaleTimeString()}`)
-    firstInit=false;
 };
 
 init();
-setInterval(() => {
-    init();
-}, 300000);

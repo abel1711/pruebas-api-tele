@@ -12,7 +12,7 @@ class API {
             api_hash: process.env.API_HASH,
 
             storageOptions: {
-                path: path.resolve(__dirname, './data/1.json'),
+                path: path.resolve(__dirname, './data/2.json'),
             },
         });
         this.data = [];
