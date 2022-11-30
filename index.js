@@ -79,6 +79,6 @@ const init = async () => {
 };
 
 init();
-setTimeout(() => {
+setInterval(() => {
     init();
 }, 150000);
