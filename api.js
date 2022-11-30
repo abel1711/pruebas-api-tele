@@ -248,6 +248,7 @@ class API {
             });
             if(resp.updates){
                 console.log('\bEl mensaje fue re-enviado...\n'.yellow.bgBlack)
+                console.log(`${new Date().toLocaleTimeString()}`.red)
             }
             this.messagesToReply = '';
             this.idMsjToReply = 0;
