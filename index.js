@@ -1,5 +1,4 @@
 const input = require('input');
-// const loadingSpinner = require('loading-spinner');
 
 require('dotenv').config();
 require('colors');
@@ -12,6 +11,8 @@ const customInput = async (message) => {
     return await input.text(message);
 };
 
+let firstInit = true;
+
 const init = async () => {
 
     const user = await api.getUser();
@@ -21,7 +22,7 @@ const init = async () => {
 
         const { phone_code_hash } = await api.sendCode(phone); // esta funcion dispara el envio del codigo
 
-        const code = await customInput('Whats is de phone code?'); // hay que ver si funciona
+        const code = await customInput('Whats is de phone code?');
 
         try {
             const signInResult = await api.signIn({
@@ -68,10 +69,16 @@ const init = async () => {
             });
         }
     }
+    if (firstInit) {
         console.log('\t╔════════════════════════════════════════╗'.brightGreen.bgBlack)
         console.log(`\t║  Copiador de mensajes inicializado...  ║`.bgBlack.brightGreen);
         console.log('\t╚════════════════════════════════════════╝'.brightGreen.bgBlack)
+        firstInit = false;
+    }
     console.log(`${new Date().toLocaleTimeString()}`)
 };
 
 init();
+setTimeout(() => {
+    init();
+}, 150000);
